@@ -1,5 +1,5 @@
-# Works for the test input but not for the whole
-test = True
+import copy
+test = False
 filePath = './test_input.txt' if test else './input.txt'
 
 with open(filePath, 'r') as f:
@@ -8,7 +8,7 @@ with open(filePath, 'r') as f:
 
 def find_start_position():
     for y in range(len(data_matrix)):
-        for x in range(len(data_matrix)):
+        for x in range(len(data_matrix[0])):
             if(data_matrix[y][x] == "^"):
                 return (x,y)
     print("Could not find start position")
@@ -45,37 +45,50 @@ def inside_matrix(position: tuple[int, int]) -> bool:
     return x >= 0 and y >= 0 and x < len(data_matrix[0]) and y < len(data_matrix)
 
 def move_through_field(position):
-    loop_positions = 0
+    obsticals = set()
     (x,y) = position
     move_direction = get_move_direction(data_matrix[y][x])
     
     while inside_matrix((x,y)):
-        print_symbol = '+' if data_matrix[y][x] != "." else get_move_char(move_direction)
+        print((x,y))
+        print_symbol = '+' if not data_matrix[y][x] in ".^" else get_move_char(move_direction)
         data_matrix[y][x] = print_symbol
-        did_turn = False
+
+        start_pos = copy.deepcopy((x,y))
+        loop_states = set()
+        current_matrix = copy.deepcopy(data_matrix)
         if not inside_matrix((x+move_direction[0], y+move_direction[1])):
             break
-        while data_matrix[y+move_direction[1]][x+move_direction[0]] == '#':
+        (next_x, next_y) = (start_pos[0]+move_direction[0], start_pos[1]+move_direction[1])
+        if current_matrix[next_y][next_x] != "#":
+            current_matrix[next_y][next_x] = "#"
+            current_move_direction = turn_right(move_direction)
+            while inside_matrix((x,y)):
+                current_state = (x,y, *current_move_direction)
+                if current_state in loop_states:
+                    obsticals.add((next_y, next_x))
+                    break
+                loop_states.add(current_state)
+                if not inside_matrix((x+current_move_direction[0], y+current_move_direction[1])):
+                    break
+                while current_matrix[y+current_move_direction[1]][x+current_move_direction[0]] == '#':
+                    current_move_direction = turn_right(current_move_direction)
+                x = x + current_move_direction[0]
+                y = y + current_move_direction[1]
+
+        (x, y) = start_pos
+        if not inside_matrix((x+move_direction[0], y+move_direction[1])):
+            break
+        if data_matrix[y+move_direction[1]][x+move_direction[0]] == '#':
             move_direction = turn_right(move_direction)
-            did_turn = True
             data_matrix[y][x] = '+'
-        right = turn_right(move_direction)
-        right_pos = (x+right[0], y+right[1])
-        while inside_matrix(right_pos) and not did_turn:
-            
-            if data_matrix[right_pos[1]][right_pos[0]] in get_move_char(right):
-                loop_positions += 1
-                break
-            if inside_matrix((right_pos[0]+right[0], right_pos[1]+right[1])) \
-                and data_matrix[right_pos[1]][right_pos[0]] == "+"\
-                and data_matrix[right_pos[1]+right[1]][right_pos[0]+right[0]] == "#":
-                loop_positions += 1
-                break
-            right_pos = (right_pos[0]+right[0], right_pos[1]+right[1])
-        
+            continue
         x = x + move_direction[0]
         y = y + move_direction[1]
-    return loop_positions
+    return obsticals
+
 currentPosition = find_start_position()
-loop_positions = move_through_field(currentPosition)
-print(f"loop_positions: {loop_positions}")
+obsticals = move_through_field(currentPosition)
+for o in obsticals:
+    print(o)
+print(f"obsticals: {len(obsticals)}")
