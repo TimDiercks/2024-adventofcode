@@ -30,6 +30,7 @@ operands = [add, mult, concat]
 total_calibration_result = 0
 
 for equation in equations:
+    # Caching permutations would be nice
     operand_permutations = generate_permutations(operands, len(equation)-2)
     for operations in operand_permutations:
         eq_res = equation[1:]
