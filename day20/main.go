@@ -3,10 +3,11 @@ package main
 import (
 	"day20/utils"
 	"fmt"
+	"math"
 )
 
 const TEST = false
-const PART = 1
+const PART = 2
 
 func main() {
 	inputFile := "input.txt"
@@ -28,33 +29,18 @@ func main() {
 	threshold := 100
 	amountCheats := 0
 	for position, steps := range stepsTilFinish {
-		startPath := utils.CheatPath{
-			Position:     position,
-			CheatedSteps: 0,
-		}
-		visited := make(map[utils.Position]bool)
-		paths := make([]utils.CheatPath, 0)
-		startPath.GetPossibleMoves(raceTrack, &paths, maxCheatSteps, &visited)
-		endings := make(map[utils.Position]bool)
-
-		for len(paths) != 0 {
-			currentPath := paths[0]
-			paths = paths[1:]
-			stepsFromNewPos, exists := stepsTilFinish[currentPath.Position]
-			if exists {
-				if endings[currentPath.Position] {
-					continue
-				}
-				endings[currentPath.Position] = true
-				savedSteps := steps - stepsFromNewPos - currentPath.CheatedSteps
-				if savedSteps >= threshold {
-					amountCheats += 1
-				}
+		for secondPosition, secondSteps := range stepsTilFinish {
+			diffX := position.X - secondPosition.X
+			diffY := position.Y - secondPosition.Y
+			doneSteps := int(math.Abs(float64(diffX)) + math.Abs(float64(diffY)))
+			if doneSteps > maxCheatSteps {
 				continue
 			}
-			currentPath.GetPossibleMoves(raceTrack, &paths, maxCheatSteps, &visited)
+			savedSteps := steps - secondSteps - doneSteps
+			if savedSteps >= threshold {
+				amountCheats += 1
+			}
 		}
-
 	}
 
 	fmt.Printf("Amount of cheats: %d\n", amountCheats)

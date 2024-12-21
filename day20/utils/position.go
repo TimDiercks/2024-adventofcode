@@ -20,26 +20,3 @@ func (position Position) Add(other Position) Position {
 	position.Y += other.Y
 	return position
 }
-
-func (path *CheatPath) GetPossibleMoves(track *RaceTrack, paths *[]CheatPath, maxCheatSteps int, visited *map[Position]bool) {
-	(*visited)[path.Position] = true
-	for _, direction := range DIRECTIONS {
-		newPosition := path.Position.Add(direction)
-		if (*visited)[newPosition] {
-			continue
-		}
-		if !track.InsideBounds(newPosition) {
-			continue
-		}
-		isWall := track.IsWall(newPosition)
-		newCheatSteps := path.CheatedSteps + 1
-		if isWall && newCheatSteps >= maxCheatSteps {
-			continue
-		}
-
-		*paths = append(*paths, CheatPath{
-			Position:     newPosition,
-			CheatedSteps: newCheatSteps,
-		})
-	}
-}
