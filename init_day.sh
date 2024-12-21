@@ -19,9 +19,9 @@ cd $folder_name
 
 touch test_input.txt
 touch input.txt
-echo "test = True
-filePath = './test_input.txt' if test else './input.txt'
+# echo "test = True
+# filePath = './test_input.txt' if test else './input.txt'
 
-with open(filePath, 'r') as f:
-    data = f.read()" > part_one.py
-touch part_two.py
+# with open(filePath, 'r') as f:
+#     data = f.read()" > part_one.py
+# touch part_two.py
