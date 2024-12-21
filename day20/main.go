@@ -29,16 +29,22 @@ func main() {
 	threshold := 100
 	amountCheats := 0
 	for position, steps := range stepsTilFinish {
-		for secondPosition, secondSteps := range stepsTilFinish {
-			diffX := position.X - secondPosition.X
-			diffY := position.Y - secondPosition.Y
-			doneSteps := int(math.Abs(float64(diffX)) + math.Abs(float64(diffY)))
-			if doneSteps > maxCheatSteps {
-				continue
-			}
-			savedSteps := steps - secondSteps - doneSteps
-			if savedSteps >= threshold {
-				amountCheats += 1
+		for x := -maxCheatSteps; x <= maxCheatSteps; x++ {
+			remainingSteps := maxCheatSteps - int(math.Abs(float64(x)))
+			for y := -remainingSteps; y <= remainingSteps; y++ {
+				doneSteps := int(math.Abs(float64(x)) + math.Abs(float64(y)))
+				newPosition := utils.Position{
+					X: position.X + x,
+					Y: position.Y + y,
+				}
+				newSteps, exists := stepsTilFinish[newPosition]
+				if !exists {
+					continue
+				}
+				savedSteps := steps - newSteps - doneSteps
+				if savedSteps >= threshold {
+					amountCheats += 1
+				}
 			}
 		}
 	}
