@@ -1,10 +1,7 @@
 package utils
 
-import "slices"
-
 type CheatPath struct {
 	Position     Position
-	Visited      []Position
 	CheatedSteps int
 }
 
@@ -24,11 +21,11 @@ func (position Position) Add(other Position) Position {
 	return position
 }
 
-func (path *CheatPath) GetPossibleMoves(track *RaceTrack, paths *[]CheatPath, maxCheatSteps int) {
-	path.Visited = append(path.Visited, path.Position)
+func (path *CheatPath) GetPossibleMoves(track *RaceTrack, paths *[]CheatPath, maxCheatSteps int, visited *map[Position]bool) {
+	(*visited)[path.Position] = true
 	for _, direction := range DIRECTIONS {
 		newPosition := path.Position.Add(direction)
-		if slices.Contains(path.Visited, newPosition) {
+		if (*visited)[newPosition] {
 			continue
 		}
 		if !track.InsideBounds(newPosition) {
@@ -42,7 +39,6 @@ func (path *CheatPath) GetPossibleMoves(track *RaceTrack, paths *[]CheatPath, ma
 
 		*paths = append(*paths, CheatPath{
 			Position:     newPosition,
-			Visited:      slices.Clone(path.Visited),
 			CheatedSteps: newCheatSteps,
 		})
 	}

@@ -29,12 +29,12 @@ func main() {
 	amountCheats := 0
 	for position, steps := range stepsTilFinish {
 		startPath := utils.CheatPath{
-			Visited:      make([]utils.Position, 0),
 			Position:     position,
 			CheatedSteps: 0,
 		}
+		visited := make(map[utils.Position]bool)
 		paths := make([]utils.CheatPath, 0)
-		startPath.GetPossibleMoves(raceTrack, &paths, maxCheatSteps)
+		startPath.GetPossibleMoves(raceTrack, &paths, maxCheatSteps, &visited)
 		endings := make(map[utils.Position]bool)
 
 		for len(paths) != 0 {
@@ -52,7 +52,7 @@ func main() {
 				}
 				continue
 			}
-			currentPath.GetPossibleMoves(raceTrack, &paths, maxCheatSteps)
+			currentPath.GetPossibleMoves(raceTrack, &paths, maxCheatSteps, &visited)
 		}
 
 	}
