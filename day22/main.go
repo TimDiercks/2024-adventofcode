@@ -3,14 +3,16 @@ package main
 import (
 	"day22/utils"
 	"fmt"
-	"math"
-	"slices"
 	"strconv"
 	"strings"
 	"sync"
 )
 
 const TEST = false
+
+func sliceToString(slice []int) string {
+	return fmt.Sprint(slice)
+}
 
 func main() {
 	inputFile := "input.txt"
@@ -24,14 +26,11 @@ func main() {
 		return
 	}
 
-	permutations := make([][]int, 0)
-	for range 4 {
-		permutations = addPermutations(permutations)
-	}
-
 	secretsList := make([][]int, len(secrets))
 	secretsBuy := make([][]int, len(secrets))
 
+	permutations := make(map[string]struct{})
+	patternValues := make([]map[string]int, 0)
 	for j := range secrets {
 		for range 2000 {
 			secretsList[j] = append(secretsList[j], secrets[j])
@@ -46,8 +45,6 @@ func main() {
 		secretsBuy[j] = append(secretsBuy[j], buyPrice)
 	}
 
-	patternValues := make([]map[string]int, 0)
-
 	for j, secret := range secretsBuy {
 		patternValues = append(patternValues, make(map[string]int))
 		currentPattern := make([]int, 0, 4)
@@ -58,11 +55,12 @@ func main() {
 			}
 			currentPattern = append(currentPattern, diff)
 			if len(currentPattern) == 4 {
-				pattern := fmt.Sprintf("%d%d%d%d", currentPattern[0], currentPattern[1], currentPattern[2], currentPattern[3])
+				pattern := sliceToString(currentPattern)
 				_, exists := (patternValues[j])[pattern]
 				if exists {
 					continue
 				}
+				permutations[pattern] = struct{}{}
 				patternValues[j][pattern] = secretStep
 			}
 		}
@@ -74,15 +72,14 @@ func main() {
 	var mutex sync.Mutex
 	var wg sync.WaitGroup
 
-	for _, permutation := range permutations {
+	for permutation := range permutations {
 		wg.Add(1)
-		go func(permutation []int) {
+		go func(permutation string) {
 			defer wg.Done()
-			pattern := fmt.Sprintf("%d%d%d%d", permutation[0], permutation[1], permutation[2], permutation[3])
 			currentBananas := 0
 
 			for _, secret := range patternValues {
-				value, exists := secret[pattern]
+				value, exists := secret[permutation]
 				if !exists {
 					continue
 				}
@@ -91,7 +88,7 @@ func main() {
 
 			mutex.Lock()
 			if currentBananas > maxBananas {
-				maxPattern = pattern
+				maxPattern = permutation
 				maxBananas = currentBananas
 			}
 			mutex.Unlock()
@@ -122,29 +119,4 @@ func evolveSecret(secret *int) {
 	result = *secret << 11
 	*secret ^= result
 	*secret %= 16777216
-}
-
-func addPermutations(permutations [][]int) [][]int {
-	if len(permutations) == 0 {
-		permutations = append(permutations, []int{})
-	}
-	startLen := len(permutations[0])
-
-	for {
-		if len(permutations[0]) != startLen {
-			break
-		}
-		permutation := permutations[0]
-		permutations = permutations[1:]
-		currentSum := 0
-		for _, a := range permutation {
-			currentSum += a
-		}
-		for i := -9 - int(math.Min(float64(currentSum), 0)); i < 10-int(math.Max(float64(currentSum), 0)); i++ {
-			// for i := -9; i < 10; i++ {
-			temp := append(permutation, i)
-			permutations = append(permutations, slices.Clone(temp))
-		}
-	}
-	return permutations
 }
